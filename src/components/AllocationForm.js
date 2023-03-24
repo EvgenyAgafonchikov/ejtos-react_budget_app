@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { AppContext } from '../context/AppContext';
 
 const AllocationForm = (props) => {
-    const { dispatch,remaining  } = useContext(AppContext);
+    const { currency, dispatch, remaining  } = useContext(AppContext);
 
     const [name, setName] = useState('');
     const [cost, setCost] = useState('');
@@ -10,11 +10,11 @@ const AllocationForm = (props) => {
 
     const submitEvent = () => {
 
-            if(cost > remaining) {
-                alert("The value cannot exceed remaining funds  £"+remaining);
-                setCost("");
-                return;
-            }
+        if(cost > remaining) {
+            alert(`The value cannot exceed remaining funds  ${currency}${remaining}`);
+            setCost('');
+            return;
+        }
 
         const expense = {
             name: name,
@@ -26,12 +26,29 @@ const AllocationForm = (props) => {
                 payload: expense,
             });
         } else {
-                dispatch({
-                    type: 'ADD_EXPENSE',
-                    payload: expense,
-                });
-            }
+            dispatch({
+                type: 'ADD_EXPENSE',
+                payload: expense,
+            });
+        }
+
+        setCost('');
     };
+
+    function setCostValidated(event) {
+        if(parseInt(event.target.value) < 0) {
+            event.preventDefault();
+            alert('Budget shouldn\'t be negative. Use reduce option to reduce amount.');
+            setCost('');
+        } else if(parseInt(event.target.value) === 0) {
+            event.preventDefault();
+            alert('Zero budget makes no sense.');
+            setCost('');
+        }
+        else {
+            setCost(event.target.value);
+        }
+    }
 
     return (
         <div>
@@ -56,13 +73,18 @@ const AllocationForm = (props) => {
                         <option defaultValue value="Add" name="Add">Add</option>
                         <option value="Reduce" name="Reduce">Reduce</option>
                     </select>
+                    <label htmlFor="allocation" style={{ marginLeft: '5px'}}>
+                        {currency}
+                    </label>
                     <input
                         required='required'
+                        name='allocation'
                         type='number'
+                        pattern='[0-9\.]*'
                         id='cost'
                         value={cost}
-                        style={{ marginLeft: '2rem' , size: 10}}
-                        onChange={(event) => setCost(event.target.value)}>
+                        style={{ marginLeft: '5px' , size: 10}}
+                        onChange={(event) => setCostValidated(event)}>
                     </input>
                     <button className="btn btn-primary" onClick={submitEvent} style={{ marginLeft: '2rem' }}>
                         Save
